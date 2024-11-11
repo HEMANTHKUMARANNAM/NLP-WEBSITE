@@ -1,0 +1,254 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mental Health Analysis</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Basic Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Body styling */
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f6f9;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        /* Center everything and add a nice border shadow */
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #007bff;
+        }
+
+        label {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            font-size: 1.1em;
+            resize: none;
+        }
+
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            font-size: 1.2em;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        /* Style the chart container */
+        #chartContainer {
+            max-width: 600px;
+            margin: 40px auto;
+        }
+
+        canvas {
+            width: 100%;
+            height: 400px;
+        }
+
+        /* Media query for smaller screens */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 1.8em;
+            }
+
+            label, button {
+                font-size: 1.1em;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Mental Health Analysis</h1>
+
+        <form id="inputForm">
+            <label for="statement">Enter your statement:</label>
+            <textarea id="statement" name="statement" rows="4" placeholder="Type how you're feeling..."></textarea>
+            <button type="submit">Analyze</button>
+        </form>
+
+        <div id="chartContainer">
+            <canvas id="result-chart"></canvas>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('inputForm').addEventListener('submit', function(e) {
+            e.preventDefault(); // Prevent the form from refreshing the page
+
+            // Get the input text from the form
+            const inputText = document.getElementById('statement').value;
+
+            // Send the input text to the backend using Fetch API
+            fetch('/predict', {
+                method: 'POST',
+                body: new URLSearchParams(new FormData(this)) // Send the form data
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Create a chart using the response data (labels and probabilities)
+                const ctx = document.getElementById('result-chart').getContext('2d');
+
+                // Destroy the existing chart if it's already created
+                if (window.myChart) {
+                    window.myChart.destroy();
+                }
+
+                // Create a new chart
+                window.myChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: data.labels, // The emotion/status labels
+                        datasets: [{
+                            label: 'Probability (%)',
+                            data: data.probabilities.map(p => (p * 100).toFixed(2)), // Convert probabilities to percentages
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 100
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+
+</body>
+</html> -->
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sentiment Analysis</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Sentiment Analysis</h1>
+
+        <form id="inputForm" enctype="multipart/form-data">
+            <label for="statement">Enter text:</label>
+            <textarea id="statement" name="statement" rows="4" placeholder="Type your text here..."></textarea>
+
+            <label for="fileUpload">Or upload a text file:</label>
+            <input type="file" id="fileUpload" name="file" accept=".txt, .docx">
+
+            <button type="submit">Analyze</button>
+        </form>
+
+        <div id="chartContainer">
+            <canvas id="result-chart"></canvas>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('inputForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const formData = new FormData(this);
+
+            fetch('/predict', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                    return;
+                }
+
+                const ctx = document.getElementById('result-chart').getContext('2d');
+                if (window.myChart) {
+                    window.myChart.destroy();
+                }
+                window.myChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: data.labels,
+                        datasets: [{
+                            label: 'Probability (%)',
+                            data: data.probabilities,
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 100
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
+
